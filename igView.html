@@ -1,0 +1,1190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>IG Viewer</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#0f0f14;--card:#1a1a22;--card2:#20202b;--line:#2a2a36;--txt:#f2f2f7;--mut:#8b8b9a;--acc:#e1306c;--acc2:#833ab4;--gold:#ffc83d}
+html,body{height:100%}
+body{background:var(--bg);color:var(--txt);font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;font-size:14px}
+button{font:inherit;font-size:13px;border:1px solid var(--line);background:#22222d;color:var(--txt);padding:7px 11px;border-radius:9px;cursor:pointer;white-space:nowrap}
+button:hover{border-color:var(--acc)}
+button.pri{background:linear-gradient(90deg,var(--acc),var(--acc2));border:0;font-weight:600}
+button.dng:hover{border-color:#ff5a5a;color:#ff7a7a}
+input[type=text],input[type=search],input[type=password],textarea,select{width:100%;background:#12121a;color:var(--txt);border:1px solid var(--line);border-radius:10px;padding:9px 10px;font:inherit;outline:none}
+input:focus,textarea:focus,select:focus{border-color:var(--acc)}
+textarea{resize:vertical}
+.app{display:grid;grid-template-columns:240px 1fr;min-height:100%}
+aside{border-right:1px solid var(--line);padding:16px 12px;background:#0c0c11;position:sticky;top:0;height:100vh;overflow:auto}
+.logo{font-size:20px;font-weight:700;margin:0 6px 14px;background:linear-gradient(90deg,#f09433,#e1306c,#833ab4);-webkit-background-clip:text;background-clip:text;color:transparent;display:inline-block}
+.nav{display:flex;flex-direction:column;gap:3px}
+.nv{display:flex;align-items:center;gap:7px;padding:8px 10px;border-radius:10px;cursor:pointer;border:1px solid transparent;color:var(--txt)}
+.nv:hover{background:#17171f}
+.nv.on{background:#1f1f2b;border-color:var(--line)}
+.nv .n{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.nv .c{color:var(--mut);font-size:12px}
+.nv.over{border-color:var(--acc);background:#2a1622}
+.nv .lb{display:none;gap:2px}
+.nv:hover .lb,.nv.on .lb{display:flex}
+.lb span{padding:0 4px;opacity:.7;border-radius:5px}
+.lb span:hover{opacity:1;background:#2c2c3a}
+.tg{width:12px;display:inline-block;color:var(--mut);cursor:pointer;font-size:11px;flex:none}
+.mnew{display:none}
+.sect{font-size:11px;color:var(--mut);text-transform:uppercase;letter-spacing:.08em;margin:16px 8px 6px;display:flex;justify-content:space-between;align-items:center;gap:6px;border-radius:8px;padding:2px 0}
+.sect.over{color:var(--acc);outline:1px dashed var(--acc)}
+.sect .sb{display:flex;gap:4px}
+.sect button{padding:1px 8px;font-size:13px;line-height:1.4}
+.langs{display:flex;gap:6px;padding:0 6px}
+.langs button{padding:4px 9px;font-size:12px}
+.langs button.on{border-color:var(--acc);background:#2a1622}
+main{padding:16px 18px 60px;min-width:0}
+.bar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:12px}
+.bar .srch{flex:1;min-width:160px;position:relative}
+.bar .srch input{padding-left:32px}
+.bar .srch:before{content:"🔍";position:absolute;left:10px;top:8px;font-size:13px;opacity:.7}
+.bar select{width:auto}
+.inc{display:none;align-items:center;gap:6px;color:var(--mut);font-size:13px;cursor:pointer}
+.inc input{accent-color:var(--acc)}
+.add{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:10px;margin-bottom:14px}
+.add textarea{min-height:54px}
+.row{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap;align-items:center}
+.hint{color:var(--mut);font-size:12px}
+.title{display:flex;align-items:baseline;gap:10px;margin:2px 0 12px;flex-wrap:wrap}
+.title h2{font-size:18px}
+.title .hint{flex:1}
+.subs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.subs:empty{display:none}
+.chip{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:8px 12px;cursor:pointer;display:flex;gap:8px;align-items:center}
+.chip:hover{border-color:var(--acc)}
+.chip .c{color:var(--mut);font-size:12px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:12px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;overflow:hidden;cursor:pointer;transition:border-color .15s,transform .15s,opacity .15s;position:relative;display:flex;flex-direction:column}
+.card:hover{border-color:var(--acc);transform:translateY(-2px)}
+.card.drag{opacity:.35}
+.card.dl:before,.card.dr:after{content:"";position:absolute;top:0;bottom:0;width:4px;background:var(--acc);z-index:3}
+.card.dl:before{left:0}.card.dr:after{right:0}
+.th{position:relative;aspect-ratio:4/5;background:linear-gradient(135deg,#833ab4,#e1306c 60%,#f09433);display:flex;align-items:center;justify-content:center;overflow:hidden}
+.th.profile{background:linear-gradient(135deg,#405de6,#833ab4)}
+.th.other{background:linear-gradient(135deg,#444,#666)}
+.th img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:50% 0}
+.th .ic{font-size:44px;opacity:.9;text-shadow:0 2px 10px rgba(0,0,0,.4)}
+.th .play{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:40px;color:#fff;text-shadow:0 2px 12px rgba(0,0,0,.6);opacity:0;transition:.15s;background:rgba(0,0,0,.25)}
+.card:hover .play{opacity:1}
+.badge{position:absolute;left:8px;bottom:8px;background:rgba(0,0,0,.55);padding:2px 8px;border-radius:20px;font-size:11px;font-weight:600;z-index:2}
+.star{position:absolute;right:6px;top:6px;z-index:2;background:rgba(0,0,0,.55);border:0;font-size:17px;padding:2px 8px;border-radius:20px;color:#fff}
+.star.on{color:var(--gold)}
+.meta{padding:9px 11px 4px;flex:1}
+.who{display:flex;align-items:center;gap:6px;margin-bottom:5px;min-width:0}
+.av{width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;flex:none;text-transform:uppercase}
+.wn{font-size:12.5px;font-weight:600;color:#ddd;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:pointer}
+.wn:hover{color:var(--acc)}
+.wn.none{color:var(--mut);font-weight:400;font-style:italic}
+.ttl{font-size:13.5px;font-weight:600;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;word-break:break-word}
+.sub{font-size:12px;color:var(--mut);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.act{display:flex;gap:5px;padding:6px 11px 11px}
+.act button{flex:1;padding:5px 2px;font-size:12px}
+.empty{grid-column:1/-1;color:var(--mut);text-align:center;padding:44px 10px;border:1px dashed var(--line);border-radius:14px}
+.card:focus-visible,.nv:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.8);display:none;align-items:center;justify-content:center;z-index:10;padding:10px}
+.modal.on{display:flex}
+.modal:focus{outline:none}
+.mbox{background:var(--card);border:1px solid var(--line);border-radius:16px;width:100%;max-width:520px;max-height:96vh;display:flex;flex-direction:column;overflow:hidden}
+.mhead{display:flex;gap:6px;padding:10px;border-bottom:1px solid var(--line);flex-wrap:wrap;align-items:center}
+.mhead .t{flex:1;font-size:13px;font-weight:600;min-width:100px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer}
+.pbar{display:flex;gap:6px;padding:8px 10px;border-bottom:1px solid var(--line);align-items:center;flex-wrap:wrap}
+.pbar input{flex:1;min-width:140px;padding:6px 9px}
+@keyframes pls{0%,100%{box-shadow:0 0 0 0 rgba(225,48,108,.7)}50%{box-shadow:0 0 0 6px rgba(225,48,108,0)}}
+#pcap.hint{border-color:var(--acc);animation:pls 1.2s infinite}
+.mbody{overflow:auto;background:#fff;flex:1;min-height:200px}
+iframe{width:100%;height:min(76vh,720px);border:0;display:block;background:#fff}
+.mfoot{padding:10px;font-size:12px;color:var(--mut);display:flex;gap:8px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+.nf{padding:30px 16px;color:#333;text-align:center;font-size:14px}
+.form{padding:14px;overflow:auto;display:flex;flex-direction:column;gap:10px}
+.form label{font-size:12px;color:var(--mut);display:block;margin-bottom:4px}
+.tprev{display:flex;gap:10px;align-items:center}
+.tprev .im{width:72px;height:90px;border-radius:10px;background:#12121a center/cover;border:1px solid var(--line);flex:none}
+.tprev .bt{display:flex;gap:6px;flex-wrap:wrap}
+.chk{display:flex;flex-wrap:wrap;gap:6px}
+.chk label{display:flex;align-items:center;gap:6px;background:#12121a;border:1px solid var(--line);padding:5px 10px;border-radius:20px;color:var(--txt);margin:0;cursor:pointer;font-size:13px}
+.chk input{accent-color:var(--acc)}
+.chk2{display:flex;align-items:flex-start;gap:8px;color:var(--txt)!important;font-size:13px!important;cursor:pointer}
+.chk2 input{accent-color:var(--acc);margin-top:2px}
+.fbtn{display:flex;gap:8px;justify-content:flex-end;padding:10px 14px;border-top:1px solid var(--line);flex-wrap:wrap}
+.fbtn .sp{flex:1}
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(90px);background:#22222d;border:1px solid var(--acc);padding:10px 16px;border-radius:10px;font-size:13px;transition:.25s;z-index:30;max-width:92vw}
+.toast.on{transform:translateX(-50%) translateY(0)}
+.dropall{position:fixed;inset:0;z-index:25;background:rgba(225,48,108,.12);border:3px dashed var(--acc);display:none;align-items:center;justify-content:center;font-size:22px;pointer-events:none}
+.dropall.on{display:flex}
+.card{-webkit-user-select:none;user-select:none}
+.ck{position:absolute;left:8px;top:8px;z-index:3;width:26px;height:26px;border-radius:8px;border:2px solid rgba(255,255,255,.85);background:rgba(0,0,0,.45);color:#fff;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;cursor:pointer;opacity:0;transition:opacity .12s;padding:0}
+.card:hover .ck,.card:focus-within .ck,body.hasSel .ck{opacity:1}
+.card.sel{border-color:var(--acc);box-shadow:0 0 0 3px var(--acc)}
+.card.sel .ck{background:var(--acc);border-color:var(--acc);opacity:1}
+.card.sel .th:before{content:"";position:absolute;inset:0;background:rgba(225,48,108,.22);z-index:1;pointer-events:none}
+@media (hover:none){.ck{opacity:1}}
+#selbar{position:fixed;left:0;right:0;margin:0 auto;width:fit-content;bottom:16px;transform:translateY(160px);background:#1d1d27;border:1px solid var(--acc);border-radius:14px;padding:8px 10px;display:flex;gap:6px;align-items:center;flex-wrap:wrap;justify-content:center;z-index:20;box-shadow:0 8px 30px rgba(0,0,0,.55);transition:transform .2s;max-width:calc(100vw - 16px);visibility:hidden}
+#selbar.on{transform:translateY(0);visibility:visible}
+#selbar .cnt{font-weight:700;padding:0 8px}
+body.hasSel .toast{bottom:calc(var(--selh,60px) + 28px)}
+body.hasSel main{padding-bottom:calc(var(--selh,60px) + 50px)}
+#selbar button{padding:6px 10px}
+.pk{display:flex;flex-direction:column;gap:6px;padding:12px;overflow:auto}
+.pk button{text-align:left}
+.dgh{position:fixed;left:-300px;top:-300px;background:var(--acc);color:#fff;padding:8px 14px;border-radius:10px;font-weight:700}
+@media(max-width:760px){
+ .app{grid-template-columns:1fr}
+ aside{position:static;height:auto;border-right:0;border-bottom:1px solid var(--line);padding:10px}
+ .nav{flex-direction:row;overflow-x:auto;padding-bottom:4px}
+ .nv{flex:none;padding-left:10px!important}
+ .sect{display:none}
+ .nv .lb{display:flex}
+ .mnew{display:flex!important}
+ .nolist{display:none}
+ .langs{padding:6px 0 0}
+ .grid{grid-template-columns:repeat(auto-fill,minmax(150px,1fr))}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <aside>
+    <div class="logo">IG Viewer</div>
+    <div class="nav" id="nav"></div>
+    <div class="sect" id="sectLists"><span data-i18n="lists"></span><span class="sb"><button id="azBtn" data-i18n-title="az_t">A–Z</button><button id="newList" data-i18n-title="new_list_t">+</button></span></div>
+    <div class="nav" id="lists"></div>
+    <div class="sect"><span data-i18n="tools"></span></div>
+    <div class="nav">
+      <div class="nv" id="bSet" tabindex="0" role="button"><span>⚙</span><span class="n" data-i18n="settings"></span></div>
+    </div>
+    <div class="langs" id="langs"><button data-l="en">EN</button><button data-l="pt">PT</button><button data-l="es">ES</button></div>
+  </aside>
+
+  <main>
+    <div class="add">
+      <textarea id="inp" data-i18n-ph="add_ph"></textarea>
+      <div class="row">
+        <button class="pri" id="add" data-i18n="load"></button>
+        <button id="paste" data-i18n="paste_clip"></button>
+        <span class="hint" data-i18n="auto_hint"></span>
+      </div>
+    </div>
+
+    <div class="bar">
+      <div class="srch"><input type="search" id="q" data-i18n-ph="search_ph"></div>
+      <label class="inc" id="incWrap"><input type="checkbox" id="inc" checked><span data-i18n="inc_sub"></span></label>
+      <select id="sort" data-i18n-title="sort_t">
+        <option value="new" data-i18n="sort_new"></option>
+        <option value="old" data-i18n="sort_old"></option>
+        <option value="az" data-i18n="sort_az"></option>
+        <option value="fav" data-i18n="sort_fav"></option>
+      </select>
+    </div>
+
+    <div class="title"><h2 id="vt"></h2><span class="hint" id="vh"></span></div>
+    <div class="subs" id="subs"></div>
+    <div class="grid" id="grid"></div>
+  </main>
+</div>
+
+<!-- player -->
+<div class="modal" id="pm" tabindex="-1">
+  <div class="mbox">
+    <div class="mhead">
+      <button id="pprev" data-i18n-title="prev">‹</button>
+      <button id="pnext" data-i18n-title="next">›</button>
+      <span class="t" id="ptitle" data-i18n-title="edit_click"></span>
+      <button id="pfav" data-i18n-title="fav_t">☆</button>
+      <button id="pcopy" data-i18n="copy_link"></button>
+      <button id="pshare" data-i18n="share"></button>
+      <button id="pfull" class="pri" data-i18n="open_full" data-i18n-title="open_full_t"></button>
+      <button id="pclose">✕</button>
+    </div>
+    <div class="pbar">
+      <input type="text" id="pauth" list="authors" data-i18n-ph="pauth_ph" maxlength="80" autocomplete="off">
+      <button id="pcap" data-i18n="cap_btn" data-i18n-title="cap_btn_t"></button>
+    </div>
+    <div class="mbody" id="pbody"></div>
+    <div class="mfoot"><span data-i18n="player_foot"></span><span id="pst"></span></div>
+  </div>
+</div>
+
+<!-- edit video -->
+<div class="modal" id="em">
+  <div class="mbox">
+    <div class="mhead"><span class="t" style="cursor:default" data-i18n="edit"></span><button id="eclose">✕</button></div>
+    <div class="form">
+      <div><label data-i18n="f_title"></label><input type="text" id="etitle" maxlength="200"></div>
+      <div><label data-i18n="f_profile"></label><input type="text" id="eauthor" list="authors" maxlength="80" autocomplete="off"></div>
+      <div><label data-i18n="f_note"></label><textarea id="enote" rows="2" maxlength="600"></textarea></div>
+      <div>
+        <label data-i18n="f_thumb"></label>
+        <div class="tprev"><div class="im" id="eim"></div>
+          <div class="bt">
+            <button id="eup" data-i18n="upload"></button>
+            <button id="eurl" data-i18n="from_url"></button>
+            <button id="eclr" data-i18n="remove"></button>
+            <input type="file" id="efile" accept="image/*" hidden>
+          </div>
+        </div>
+      </div>
+      <div><label data-i18n="f_lists"></label><div class="chk" id="elists"></div></div>
+      <div><label data-i18n="f_link"></label><input type="text" id="elink" readonly></div>
+    </div>
+    <div class="fbtn">
+      <button class="dng" id="edel" data-i18n="delete"></button>
+      <button id="eref" data-i18n="refresh_ig" data-i18n-title="refresh_t"></button>
+      <span class="sp"></span>
+      <button id="ecancel" data-i18n="cancel"></button>
+      <button class="pri" id="esave" data-i18n="save"></button>
+    </div>
+  </div>
+</div>
+
+<!-- edit list -->
+<div class="modal" id="lm">
+  <div class="mbox" style="max-width:420px">
+    <div class="mhead"><span class="t" style="cursor:default" data-i18n="lm_title"></span><button id="lclose">✕</button></div>
+    <div class="form">
+      <div><label data-i18n="lm_name"></label><input type="text" id="lname" maxlength="40"></div>
+      <div><label data-i18n="lm_inside"></label><select id="lparent"></select></div>
+    </div>
+    <div class="fbtn">
+      <button class="dng" id="ldel" data-i18n="delete"></button>
+      <span class="sp"></span>
+      <button id="lcancel" data-i18n="cancel"></button>
+      <button class="pri" id="lsave" data-i18n="save"></button>
+    </div>
+  </div>
+</div>
+
+<!-- settings -->
+<div class="modal" id="sm">
+  <div class="mbox">
+    <div class="mhead"><span class="t" style="cursor:default" data-i18n="settings"></span><button id="sclose">✕</button></div>
+    <div class="form">
+      <div>
+        <label data-i18n="set_token"></label>
+        <input type="password" id="stoken" placeholder="APP_ID|CLIENT_TOKEN" autocomplete="off">
+        <div class="hint" style="margin-top:5px" data-i18n="set_token_hint"></div>
+      </div>
+      <label class="chk2"><input type="checkbox" id="sauto"><span data-i18n="set_auto"></span></label>
+      <div class="row" style="margin:0">
+        <button id="sfetch" data-i18n="fetch_all"></button>
+        <button id="sexp" data-i18n="export"></button>
+        <button id="simp" data-i18n="import"></button>
+        <input type="file" id="sfile" accept="application/json,.json" hidden>
+      </div>
+      <div class="row" style="margin:0"><button class="dng" id="sclr" data-i18n="clear_all"></button></div>
+    </div>
+    <div class="fbtn"><button class="pri" id="ssave" data-i18n="save"></button></div>
+  </div>
+</div>
+
+<div id="selbar" aria-live="polite">
+  <span class="cnt" id="selcnt"></span>
+  <button id="sAll" data-i18n="sel_all"></button>
+  <button class="pri" id="sAdd" data-i18n="sel_add"></button>
+  <button id="sFav" data-i18n="sel_fav"></button>
+  <button id="sRm" data-i18n="sel_rm"></button>
+  <button class="dng" id="sDel" data-i18n="sel_del"></button>
+  <button id="sClr" data-i18n="sel_clear"></button>
+</div>
+<div class="modal" id="pk"><div class="mbox" style="max-width:420px"><div class="mhead"><span class="t" style="cursor:default" id="pktitle"></span><button id="pkclose">✕</button></div><div class="pk" id="pklist"></div></div></div>
+<datalist id="authors"></datalist>
+<div class="dropall" id="dropall"></div>
+<div class="toast" id="toast"></div>
+
+<script>
+'use strict';
+/* ======================= i18n (EN / PT / ES) ======================= */
+const LANGS={en:'English',pt:'Português',es:'Español'};
+const LOC={en:'en-US',pt:'pt-BR',es:'es'};
+const T={
+en:{
+ lists:'Lists',tools:'Tools',settings:'Settings & backup',nav_all:'All',nav_fav:'Favorites',
+ new_list_t:'New list',new_list:'New list',az_t:'Group lists by first letter (A, B, C…)',az_chip:'A–Z',
+ no_lists:'No lists yet. Click + to create one, then drag videos onto it.',
+ add_ph:'Paste Instagram link(s) — reel, post or profile (one or many). You can also drag a link onto this page.',
+ load:'Load',paste_clip:'Paste from clipboard',auto_hint:'Auto-loads on paste. Playing needs internet.',
+ search_ph:'Search title, note, profile, code…  ( / )',sort_t:'Sort',sort_new:'Newest',sort_old:'Oldest',sort_az:'A → Z',sort_fav:'Favorites first',
+ v_all:'All',v_fav:'★ Favorites',v_list_hint:'Drag cards to reorder. New links pasted here join this list.',inc_sub:'Include sub-lists',
+ prev:'Previous',next:'Next',edit_click:'Click to edit',fav_t:'Favorite',copy_link:'Copy link',share:'Share',
+ open_full:'Open full',open_full_t:'Opens Instagram in a window using your login (like, comment, follow…)',
+ pauth_ph:'@profile — whose video is this? (Enter to save)',
+ cap_btn:'📸 Capture thumbnail',cap_btn_t:'Takes a picture of the video + profile header shown below. Share this tab once; it then stays on. You can also paste a screenshot with Ctrl+V.',
+ player_foot:'Embed can’t like/comment. “Open full” uses your Instagram login. Ctrl+V pastes a screenshot as thumbnail.',
+ edit:'Edit',f_title:'Title',f_profile:'Profile / account (whose video is it)',f_note:'Note (searchable)',
+ f_thumb:'Thumbnail (upload, paste an image, or image URL)',upload:'Upload',from_url:'From URL',remove:'Remove',f_lists:'Lists',f_link:'Link',
+ delete:'Delete',refresh_ig:'Refresh from Instagram',refresh_t:'Needs a token in Settings',cancel:'Cancel',save:'Save',
+ set_token:'Meta oEmbed token (optional) — auto title, profile & thumbnail',
+ set_token_hint:'Instagram doesn’t give titles/thumbnails to anonymous pages. Without a token, use ✎ Edit to set title and thumbnail yourself. The token stays only in this browser.',
+ set_auto:'Auto-capture thumbnail when a video opens (your browser asks once to share this tab, then it stays on)',
+ fetch_all:'Fetch info for all',export:'Export backup',import:'Import backup',clear_all:'Clear everything',
+ drop_here:'Drop Instagram link here',
+ kind_reel:'REEL',kind_post:'POST',kind_profile:'PROFILE',kind_link:'LINK',
+ card_ig_t:'Open on Instagram',card_copy:'Copy',card_edit_t:'Edit',card_del_t:'Delete',card_rm_t:'Remove from this list',
+ who_filter:'Show only this profile',who_none:'＋ add profile',who_set:'Set the profile name',
+ empty_search:'Nothing matches your search.',empty_fav:'No favorites yet — tap the ☆ on a video.',
+ empty_list:'This list is empty. Drag videos onto it in the sidebar, or use ✎ Edit → Lists.',empty_all:'No links yet. Paste an Instagram link above.',
+ toast_no_link:'No Instagram link found',toast_added:'Added: {0} — tap ✎ to set title, profile or thumbnail',toast_added_list:'Added to “{0}”',
+ toast_fav:'Marked favorite',toast_copied:'Link copied',toast_nothing_open:'Nothing to open',
+ toast_storage:'Storage full — export a backup or remove custom thumbnails',
+ toast_profile_saved:'Profile saved: @{0}',toast_profile_cleared:'Profile cleared',toast_thumb_saved:'Thumbnail saved',toast_img_fail:'Could not read that image',
+ toast_cap_nothing:'Nothing to capture here',toast_cap_unsupported:'Capture not supported here — paste a screenshot (Ctrl+V)',
+ toast_cap_cancel:'Capture cancelled — you can paste a screenshot (Ctrl+V) instead',
+ toast_cap_skip:'Auto-capture is paused until you share this tab — press 📸 when you want it',
+ toast_cap_tab:'Choose “This tab” in the capture window and try again',toast_cap_fail:'Capture failed — paste a screenshot (Ctrl+V) instead',
+ toast_cap_ok:'Thumbnail captured',toast_cap_on:'Auto-capture is on',
+ toast_saved:'Saved',toast_add_token:'Add a token first',toast_updated:'Updated {0} of {1}',toast_ig_ok:'Updated from Instagram',
+ toast_ig_fail:'Could not fetch (check token / public post)',toast_imported:'Imported — new items: {0}',toast_bad_backup:'Invalid backup file',
+ toast_clip:'Allow clipboard access or paste in the box',toast_az_done:'Lists grouped: {0} moved',toast_az_none:'Nothing to group',
+ toast_no_cycle:'A list can’t go inside itself',
+ p_listname:'List name',p_sublist:'Sub-list name',p_imgurl:'Image URL (https://…)',
+ c_del_list:'Delete list “{0}”? Videos stay in your library; its sub-lists move up one level.',c_del_item:'Delete “{0}” from your library?',
+ c_clear1:'Delete ALL videos, lists and settings?',c_clear2:'Really delete everything? This cannot be undone.',
+ c_az:'Group {0} list(s) into letter lists (A, B, C…)?',
+ pl_loading:'Loading…',pl_slow:'Slow/blocked? Use “Open full”',pl_nf:'This link can’t be played here. Use “Open full”.',
+ pl_off:'You are offline. The link is saved — play it when online, or share it.',
+ lm_title:'List',lm_name:'Name',lm_inside:'Inside',lm_top:'(top level)',lm_sub_t:'New sub-list',lm_edit_t:'Edit list',lm_del_t:'Delete list',lm_toggle:'Expand / collapse',sub_lists:'Sub-lists',
+ sel_n:'{0} selected',sel_all:'Select all',sel_clear:'Clear',sel_fav:'★ Favorite',sel_add:'Add to list…',sel_rm:'Remove from list',sel_del:'Delete',sel_t:'Select (Ctrl/Shift+click, or X)',
+ pk_title:'Add {0} video(s) to…',c_del_many:'Delete {0} videos from your library?',toast_added_many:'{0} added to “{1}”',toast_fav_many:'{0} marked favorite',toast_rm_many:'{0} removed from the list',toast_del_many:'{0} deleted'
+},
+pt:{
+ lists:'Listas',tools:'Ferramentas',settings:'Configurações e backup',nav_all:'Todos',nav_fav:'Favoritos',
+ new_list_t:'Nova lista',new_list:'Nova lista',az_t:'Agrupar listas pela primeira letra (A, B, C…)',az_chip:'A–Z',
+ no_lists:'Nenhuma lista ainda. Clique em + para criar e arraste vídeos para ela.',
+ add_ph:'Cole link(s) do Instagram — reel, post ou perfil (um ou vários). Você também pode arrastar um link para esta página.',
+ load:'Carregar',paste_clip:'Colar da área de transferência',auto_hint:'Carrega automaticamente ao colar. Para reproduzir é preciso internet.',
+ search_ph:'Buscar título, nota, perfil, código…  ( / )',sort_t:'Ordenar',sort_new:'Mais recentes',sort_old:'Mais antigos',sort_az:'A → Z',sort_fav:'Favoritos primeiro',
+ v_all:'Todos',v_fav:'★ Favoritos',v_list_hint:'Arraste os cartões para reordenar. Novos links colados aqui entram nesta lista.',inc_sub:'Incluir sublistas',
+ prev:'Anterior',next:'Próximo',edit_click:'Clique para editar',fav_t:'Favorito',copy_link:'Copiar link',share:'Compartilhar',
+ open_full:'Abrir completo',open_full_t:'Abre o Instagram numa janela usando seu login (curtir, comentar, seguir…)',
+ pauth_ph:'@perfil — de quem é este vídeo? (Enter para salvar)',
+ cap_btn:'📸 Capturar miniatura',cap_btn_t:'Tira uma foto do vídeo + cabeçalho do perfil mostrados abaixo. Compartilhe esta aba uma vez; depois continua ligado. Você também pode colar um print com Ctrl+V.',
+ player_foot:'O player não permite curtir/comentar. “Abrir completo” usa seu login do Instagram. Ctrl+V cola um print como miniatura.',
+ edit:'Editar',f_title:'Título',f_profile:'Perfil / conta (de quem é o vídeo)',f_note:'Nota (pesquisável)',
+ f_thumb:'Miniatura (enviar, colar imagem ou URL da imagem)',upload:'Enviar',from_url:'De URL',remove:'Remover',f_lists:'Listas',f_link:'Link',
+ delete:'Excluir',refresh_ig:'Atualizar do Instagram',refresh_t:'Requer um token nas Configurações',cancel:'Cancelar',save:'Salvar',
+ set_token:'Token oEmbed da Meta (opcional) — título, perfil e miniatura automáticos',
+ set_token_hint:'O Instagram não fornece títulos/miniaturas a páginas anônimas. Sem token, use ✎ Editar para definir título e miniatura você mesmo. O token fica apenas neste navegador.',
+ set_auto:'Capturar miniatura automaticamente ao abrir um vídeo (o navegador pede uma vez para compartilhar esta aba e depois fica ligado)',
+ fetch_all:'Buscar info de todos',export:'Exportar backup',import:'Importar backup',clear_all:'Apagar tudo',
+ drop_here:'Solte o link do Instagram aqui',
+ kind_reel:'REEL',kind_post:'POST',kind_profile:'PERFIL',kind_link:'LINK',
+ card_ig_t:'Abrir no Instagram',card_copy:'Copiar',card_edit_t:'Editar',card_del_t:'Excluir',card_rm_t:'Remover desta lista',
+ who_filter:'Mostrar só este perfil',who_none:'＋ adicionar perfil',who_set:'Definir o nome do perfil',
+ empty_search:'Nada corresponde à sua busca.',empty_fav:'Nenhum favorito ainda — toque em ☆ num vídeo.',
+ empty_list:'Esta lista está vazia. Arraste vídeos para ela na barra lateral ou use ✎ Editar → Listas.',empty_all:'Nenhum link ainda. Cole um link do Instagram acima.',
+ toast_no_link:'Nenhum link do Instagram encontrado',toast_added:'Adicionados: {0} — toque em ✎ para definir título, perfil ou miniatura',toast_added_list:'Adicionado a “{0}”',
+ toast_fav:'Marcado como favorito',toast_copied:'Link copiado',toast_nothing_open:'Nada para abrir',
+ toast_storage:'Armazenamento cheio — exporte um backup ou remova miniaturas',
+ toast_profile_saved:'Perfil salvo: @{0}',toast_profile_cleared:'Perfil removido',toast_thumb_saved:'Miniatura salva',toast_img_fail:'Não foi possível ler essa imagem',
+ toast_cap_nothing:'Nada para capturar aqui',toast_cap_unsupported:'Captura não suportada aqui — cole um print (Ctrl+V)',
+ toast_cap_cancel:'Captura cancelada — você pode colar um print (Ctrl+V)',
+ toast_cap_skip:'A captura automática está pausada até você compartilhar esta aba — pressione 📸 quando quiser',
+ toast_cap_tab:'Escolha “Esta guia” na janela de captura e tente de novo',toast_cap_fail:'A captura falhou — cole um print (Ctrl+V)',
+ toast_cap_ok:'Miniatura capturada',toast_cap_on:'Captura automática ativada',
+ toast_saved:'Salvo',toast_add_token:'Adicione um token primeiro',toast_updated:'Atualizados {0} de {1}',toast_ig_ok:'Atualizado do Instagram',
+ toast_ig_fail:'Não foi possível buscar (verifique o token / publicação pública)',toast_imported:'Importado — itens novos: {0}',toast_bad_backup:'Arquivo de backup inválido',
+ toast_clip:'Permita o acesso à área de transferência ou cole na caixa',toast_az_done:'Listas agrupadas: {0} movidas',toast_az_none:'Nada para agrupar',
+ toast_no_cycle:'Uma lista não pode ficar dentro dela mesma',
+ p_listname:'Nome da lista',p_sublist:'Nome da sublista',p_imgurl:'URL da imagem (https://…)',
+ c_del_list:'Excluir a lista “{0}”? Os vídeos continuam na biblioteca; as sublistas sobem um nível.',c_del_item:'Excluir “{0}” da sua biblioteca?',
+ c_clear1:'Apagar TODOS os vídeos, listas e configurações?',c_clear2:'Apagar tudo mesmo? Isso não pode ser desfeito.',
+ c_az:'Agrupar {0} lista(s) em listas por letra (A, B, C…)?',
+ pl_loading:'Carregando…',pl_slow:'Lento/bloqueado? Use “Abrir completo”',pl_nf:'Este link não pode ser reproduzido aqui. Use “Abrir completo”.',
+ pl_off:'Você está offline. O link está salvo — reproduza quando estiver online ou compartilhe.',
+ lm_title:'Lista',lm_name:'Nome',lm_inside:'Dentro de',lm_top:'(nível principal)',lm_sub_t:'Nova sublista',lm_edit_t:'Editar lista',lm_del_t:'Excluir lista',lm_toggle:'Expandir / recolher',sub_lists:'Sublistas',
+ sel_n:'{0} selecionado(s)',sel_all:'Selecionar tudo',sel_clear:'Limpar',sel_fav:'★ Favoritar',sel_add:'Adicionar à lista…',sel_rm:'Remover da lista',sel_del:'Excluir',sel_t:'Selecionar (Ctrl/Shift+clique, ou X)',
+ pk_title:'Adicionar {0} vídeo(s) a…',c_del_many:'Excluir {0} vídeos da sua biblioteca?',toast_added_many:'{0} adicionado(s) a “{1}”',toast_fav_many:'{0} favoritado(s)',toast_rm_many:'{0} removido(s) da lista',toast_del_many:'{0} excluído(s)'
+},
+es:{
+ lists:'Listas',tools:'Herramientas',settings:'Ajustes y copia de seguridad',nav_all:'Todos',nav_fav:'Favoritos',
+ new_list_t:'Nueva lista',new_list:'Nueva lista',az_t:'Agrupar listas por la primera letra (A, B, C…)',az_chip:'A–Z',
+ no_lists:'Aún no hay listas. Haz clic en + para crear una y arrastra videos hacia ella.',
+ add_ph:'Pega enlace(s) de Instagram — reel, publicación o perfil (uno o varios). También puedes arrastrar un enlace a esta página.',
+ load:'Cargar',paste_clip:'Pegar del portapapeles',auto_hint:'Se carga al pegar. Reproducir requiere internet.',
+ search_ph:'Buscar título, nota, perfil, código…  ( / )',sort_t:'Ordenar',sort_new:'Más recientes',sort_old:'Más antiguos',sort_az:'A → Z',sort_fav:'Favoritos primero',
+ v_all:'Todos',v_fav:'★ Favoritos',v_list_hint:'Arrastra las tarjetas para reordenar. Los enlaces nuevos pegados aquí se añaden a esta lista.',inc_sub:'Incluir sublistas',
+ prev:'Anterior',next:'Siguiente',edit_click:'Haz clic para editar',fav_t:'Favorito',copy_link:'Copiar enlace',share:'Compartir',
+ open_full:'Abrir completo',open_full_t:'Abre Instagram en una ventana con tu sesión (me gusta, comentar, seguir…)',
+ pauth_ph:'@perfil — ¿de quién es este video? (Enter para guardar)',
+ cap_btn:'📸 Capturar miniatura',cap_btn_t:'Toma una foto del video + encabezado del perfil que se muestra abajo. Comparte esta pestaña una vez; luego queda activo. También puedes pegar una captura con Ctrl+V.',
+ player_foot:'El reproductor no permite dar me gusta ni comentar. “Abrir completo” usa tu sesión de Instagram. Ctrl+V pega una captura como miniatura.',
+ edit:'Editar',f_title:'Título',f_profile:'Perfil / cuenta (de quién es el video)',f_note:'Nota (se puede buscar)',
+ f_thumb:'Miniatura (subir, pegar imagen o URL de imagen)',upload:'Subir',from_url:'Desde URL',remove:'Quitar',f_lists:'Listas',f_link:'Enlace',
+ delete:'Eliminar',refresh_ig:'Actualizar desde Instagram',refresh_t:'Requiere un token en Ajustes',cancel:'Cancelar',save:'Guardar',
+ set_token:'Token oEmbed de Meta (opcional) — título, perfil y miniatura automáticos',
+ set_token_hint:'Instagram no da títulos/miniaturas a páginas anónimas. Sin token, usa ✎ Editar para poner título y miniatura tú mismo. El token solo se guarda en este navegador.',
+ set_auto:'Capturar miniatura automáticamente al abrir un video (el navegador pide una vez compartir esta pestaña y luego queda activo)',
+ fetch_all:'Obtener info de todos',export:'Exportar copia',import:'Importar copia',clear_all:'Borrar todo',
+ drop_here:'Suelta el enlace de Instagram aquí',
+ kind_reel:'REEL',kind_post:'POST',kind_profile:'PERFIL',kind_link:'ENLACE',
+ card_ig_t:'Abrir en Instagram',card_copy:'Copiar',card_edit_t:'Editar',card_del_t:'Eliminar',card_rm_t:'Quitar de esta lista',
+ who_filter:'Mostrar solo este perfil',who_none:'＋ añadir perfil',who_set:'Poner el nombre del perfil',
+ empty_search:'Nada coincide con tu búsqueda.',empty_fav:'Aún no hay favoritos: toca ☆ en un video.',
+ empty_list:'Esta lista está vacía. Arrastra videos hacia ella en la barra lateral o usa ✎ Editar → Listas.',empty_all:'Aún no hay enlaces. Pega un enlace de Instagram arriba.',
+ toast_no_link:'No se encontró ningún enlace de Instagram',toast_added:'Añadidos: {0} — toca ✎ para poner título, perfil o miniatura',toast_added_list:'Añadido a “{0}”',
+ toast_fav:'Marcado como favorito',toast_copied:'Enlace copiado',toast_nothing_open:'Nada que abrir',
+ toast_storage:'Almacenamiento lleno: exporta una copia o quita miniaturas',
+ toast_profile_saved:'Perfil guardado: @{0}',toast_profile_cleared:'Perfil borrado',toast_thumb_saved:'Miniatura guardada',toast_img_fail:'No se pudo leer esa imagen',
+ toast_cap_nothing:'Nada que capturar aquí',toast_cap_unsupported:'Captura no compatible aquí: pega una captura (Ctrl+V)',
+ toast_cap_cancel:'Captura cancelada: puedes pegar una captura (Ctrl+V)',
+ toast_cap_skip:'La captura automática está en pausa hasta que compartas esta pestaña: pulsa 📸 cuando quieras',
+ toast_cap_tab:'Elige “Esta pestaña” en la ventana de captura e inténtalo de nuevo',toast_cap_fail:'La captura falló: pega una captura (Ctrl+V)',
+ toast_cap_ok:'Miniatura capturada',toast_cap_on:'Captura automática activada',
+ toast_saved:'Guardado',toast_add_token:'Añade un token primero',toast_updated:'Actualizados {0} de {1}',toast_ig_ok:'Actualizado desde Instagram',
+ toast_ig_fail:'No se pudo obtener (revisa el token / publicación pública)',toast_imported:'Importado — elementos nuevos: {0}',toast_bad_backup:'Archivo de copia no válido',
+ toast_clip:'Permite el acceso al portapapeles o pega en el cuadro',toast_az_done:'Listas agrupadas: {0} movidas',toast_az_none:'Nada que agrupar',
+ toast_no_cycle:'Una lista no puede estar dentro de sí misma',
+ p_listname:'Nombre de la lista',p_sublist:'Nombre de la sublista',p_imgurl:'URL de la imagen (https://…)',
+ c_del_list:'¿Eliminar la lista “{0}”? Los videos se quedan en tu biblioteca; sus sublistas suben un nivel.',c_del_item:'¿Eliminar “{0}” de tu biblioteca?',
+ c_clear1:'¿Borrar TODOS los videos, listas y ajustes?',c_clear2:'¿Borrar todo de verdad? No se puede deshacer.',
+ c_az:'¿Agrupar {0} lista(s) en listas por letra (A, B, C…)?',
+ pl_loading:'Cargando…',pl_slow:'¿Lento/bloqueado? Usa “Abrir completo”',pl_nf:'Este enlace no se puede reproducir aquí. Usa “Abrir completo”.',
+ pl_off:'Estás sin conexión. El enlace está guardado: reprodúcelo cuando tengas internet o compártelo.',
+ lm_title:'Lista',lm_name:'Nombre',lm_inside:'Dentro de',lm_top:'(nivel principal)',lm_sub_t:'Nueva sublista',lm_edit_t:'Editar lista',lm_del_t:'Eliminar lista',lm_toggle:'Expandir / contraer',sub_lists:'Sublistas',
+ sel_n:'{0} seleccionado(s)',sel_all:'Seleccionar todo',sel_clear:'Limpiar',sel_fav:'★ Favorito',sel_add:'Añadir a lista…',sel_rm:'Quitar de la lista',sel_del:'Eliminar',sel_t:'Seleccionar (Ctrl/Shift+clic, o X)',
+ pk_title:'Añadir {0} video(s) a…',c_del_many:'¿Eliminar {0} videos de tu biblioteca?',toast_added_many:'{0} añadido(s) a “{1}”',toast_fav_many:'{0} marcado(s) como favorito',toast_rm_many:'{0} quitado(s) de la lista',toast_del_many:'{0} eliminado(s)'
+}};
+let lang='en';
+const tr=(k,...a)=>{let s=(T[lang]&&T[lang][k])||T.en[k]||k;a.forEach((v,i)=>{s=s.split('{'+i+'}').join(v)});return s};
+const guessLang=()=>{const n=String(navigator.language||'en').slice(0,2).toLowerCase();return LANGS[n]?n:'en'};
+function applyLang(){
+  document.documentElement.lang=lang;
+  document.querySelectorAll('[data-i18n]').forEach(e=>{e.textContent=tr(e.dataset.i18n)});
+  document.querySelectorAll('[data-i18n-ph]').forEach(e=>{e.placeholder=tr(e.dataset.i18nPh)});
+  document.querySelectorAll('[data-i18n-title]').forEach(e=>{e.title=tr(e.dataset.i18nTitle)});
+  $('dropall').textContent=tr('drop_here');
+  document.querySelectorAll('#langs button').forEach(b=>b.classList.toggle('on',b.dataset.l===lang));
+}
+
+/* ======================= state ======================= */
+const K2='igv_v2',K1='igv_history_v1';
+const $=id=>document.getElementById(id);
+const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,8);
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+let S={items:[],lists:[],settings:{token:'',autoCap:true,lang:''},ui:{view:'all',sort:'new',incSub:true}};
+
+function load(){
+  try{
+    const r=localStorage.getItem(K2);
+    if(r){const p=JSON.parse(r);S.items=Array.isArray(p.items)?p.items:[];S.lists=Array.isArray(p.lists)?p.lists:[];
+      S.settings=Object.assign({token:'',autoCap:true,lang:''},p.settings);S.ui=Object.assign({view:'all',sort:'new',incSub:true},p.ui);return}
+  }catch(e){}
+  try{
+    const o=JSON.parse(localStorage.getItem(K1)||'[]');
+    S.items=o.map(x=>({id:uid(),kind:x.kind,key:x.key,url:x.url,embed:x.embed,reels:x.reels,title:x.title,note:'',thumb:'',author:'',fav:false,added:x.added||Date.now()}));
+  }catch(e){}
+}
+function save(){try{localStorage.setItem(K2,JSON.stringify(S));return true}catch(e){toast(tr('toast_storage'));return false}}
+load();
+lang=LANGS[S.settings.lang]?S.settings.lang:guessLang();
+
+function toast(m){const el=$('toast');el.textContent=m;el.classList.add('on');clearTimeout(toast.t);toast.t=setTimeout(()=>el.classList.remove('on'),2200)}
+function h(tag,props,...kids){
+  const e=document.createElement(tag);
+  for(const k in props||{}){const v=props[k];if(k==='class')e.className=v;else if(k==='text')e.textContent=v;else if(k.startsWith('on'))e[k]=v;else if(v!==false&&v!=null)e.setAttribute(k,v)}
+  kids.flat().forEach(c=>{if(c!=null)e.appendChild(typeof c==='string'?document.createTextNode(c):c)});
+  return e;
+}
+
+/* ======================= parsing ======================= */
+const POST=['p','reel','reels','tv'];
+const RESERVED=['explore','accounts','direct','stories','share','about','legal','web','developer','directory','privacy','api','ads','reels'];
+function parseOne(raw){
+  let u;try{u=new URL(raw)}catch(e){return null}
+  if(!/(^|\.)instagram\.com$/i.test(u.hostname))return null;
+  const p=u.pathname.split('/').filter(Boolean);
+  if(!p.length)return null;
+  let code=null,kind=null,who='';
+  if(POST.includes(p[0])&&p[1]){code=p[1];kind=p[0]}
+  else if(p[1]&&POST.includes(p[1])&&p[2]){code=p[2];kind=p[1];who=p[0]}
+  if(code){
+    const isPost=kind==='p';
+    const url='https://www.instagram.com/'+(isPost?'p':'reel')+'/'+code+'/';
+    return{kind:isPost?'post':'reel',key:'c:'+code,url,title:(isPost?'Post ':'Reel ')+code,embed:url+'embed/captioned/',author:who};
+  }
+  if(RESERVED.includes(p[0].toLowerCase())){
+    const url=u.origin+u.pathname;
+    return{kind:'other',key:'o:'+url,url,title:p.join('/'),embed:null};
+  }
+  const user=p[0],url='https://www.instagram.com/'+user+'/';
+  return{kind:'profile',key:'u:'+user.toLowerCase(),url,title:'@'+user,embed:url+'embed/',reels:url+'reels/',author:user};
+}
+const byId=id=>S.items.find(x=>x.id===id);
+const listById=id=>S.lists.find(l=>l.id===id);
+
+function addText(text,forceList){
+  const m=(text||'').match(/https?:\/\/(?:www\.)?instagram\.com\/[^\s<>"')\]]+/gi)||[];
+  const added=[];
+  m.forEach(r=>{
+    const p=parseOne(r.replace(/[.,;]+$/,''));
+    if(!p)return;
+    let it=S.items.find(x=>x.key===p.key);
+    if(it){S.items=S.items.filter(x=>x!==it);it.added=Date.now();if(!it.author&&p.author)it.author=p.author}
+    else it=Object.assign({id:uid(),note:'',thumb:'',author:'',fav:false,added:Date.now()},p);
+    S.items.unshift(it);
+    if(!added.includes(it))added.push(it);
+  });
+  if(!added.length){toast(tr('toast_no_link'));return[]}
+  const lid=forceList||(S.ui.view.startsWith('list:')?S.ui.view.slice(5):null);
+  if(lid&&listById(lid))added.forEach(it=>addToList(lid,it.id,true));
+  if(S.ui.view==='fav')added.forEach(it=>it.fav=true);
+  save();render();
+  toast(tr('toast_added',added.length));
+  added.forEach(it=>fetchInfo(it));
+  if(added.length===1)openPlayer(added[0].id,{focusAuthor:true});
+  return added;
+}
+
+/* ======================= oEmbed (optional token) ======================= */
+async function fetchInfo(it){
+  const tk=S.settings.token;
+  if(!tk||(it.kind!=='reel'&&it.kind!=='post'))return false;
+  try{
+    const r=await fetch('https://graph.facebook.com/v19.0/instagram_oembed?omitscript=true&url='+encodeURIComponent(it.url)+'&access_token='+encodeURIComponent(tk));
+    if(!r.ok)throw new Error(r.status);
+    const j=await r.json();
+    if(!it.custom&&j.title){const first=String(j.title).split('\n').find(Boolean)||j.title;it.title=first.length>90?first.slice(0,87)+'…':first}
+    if(j.author_name&&!it.authorEdited)it.author=j.author_name;
+    if(j.thumbnail_url&&!it.thumbCustom)it.thumb=j.thumbnail_url;
+    save();render();return true;
+  }catch(e){return false}
+}
+
+/* ======================= lists (nested) ======================= */
+const byName=(a,b)=>a.name.localeCompare(b.name,undefined,{sensitivity:'base',numeric:true});
+const kids=pid=>S.lists.filter(l=>(l.parent||null)===(pid||null)).sort(byName);
+function descendants(id){const out=[];const walk=x=>kids(x).forEach(k=>{out.push(k);walk(k.id)});walk(id);return out}
+function isInside(anc,id){let c=listById(id),n=0;while(c&&n++<200){if(c.id===anc)return true;c=listById(c.parent)}return false}
+function listPath(l){const p=[];let c=l,n=0;while(c&&n++<200){p.unshift(c.name);c=listById(c.parent)}return p}
+function listVideoIds(l,inc){
+  const ids=l.ids.slice();
+  if(inc)descendants(l.id).forEach(d=>d.ids.forEach(i=>{if(!ids.includes(i))ids.push(i)}));
+  return ids.filter(byId);
+}
+const listCount=l=>listVideoIds(l,true).length;
+function flatLists(pid,depth,out){out=out||[];kids(pid).forEach(l=>{out.push({l,depth:depth||0});flatLists(l.id,(depth||0)+1,out)});return out}
+
+function addToList(lid,id,quiet){
+  const l=listById(lid);if(!l||!byId(id))return;
+  if(!l.ids.includes(id))l.ids.push(id);
+  if(!quiet){save();render();toast(tr('toast_added_list',l.name))}
+}
+function removeFromList(lid,id){const l=listById(lid);if(l){l.ids=l.ids.filter(x=>x!==id);save();render()}}
+function newList(parentId){
+  const n=prompt(tr(parentId?'p_sublist':'p_listname'));if(!n||!n.trim())return null;
+  const l={id:uid(),name:n.trim().slice(0,40),ids:[],parent:parentId||null};S.lists.push(l);
+  if(parentId){const p=listById(parentId);if(p)p.collapsed=false}
+  save();render();return l;
+}
+function setParent(id,pid){
+  const l=listById(id);if(!l)return false;
+  if(pid&&isInside(id,pid)){toast(tr('toast_no_cycle'));return false}
+  l.parent=pid||null;
+  if(pid){const p=listById(pid);if(p)p.collapsed=false}
+  save();render();return true;
+}
+function deleteList(id){
+  const l=listById(id);if(!l)return;
+  if(!confirm(tr('c_del_list',l.name)))return;
+  S.lists.forEach(x=>{if(x.parent===id)x.parent=l.parent||null});
+  S.lists=S.lists.filter(x=>x.id!==id);
+  if(S.ui.view==='list:'+id)S.ui.view='all';
+  save();render();
+}
+function letterOf(name){
+  const c=String(name).trim().normalize('NFD').replace(/[̀-ͯ]/g,'').charAt(0).toUpperCase();
+  return /[A-Z]/.test(c)?c:'#';
+}
+function organizeAZ(){
+  const isLetter=l=>l.name.length===1&&/^[A-Za-z#]$/.test(l.name);
+  const cand=S.lists.filter(l=>!l.parent&&!isLetter(l));
+  if(!cand.length){toast(tr('toast_az_none'));return}
+  if(!confirm(tr('c_az',cand.length)))return;
+  cand.forEach(l=>{
+    const L=letterOf(l.name);
+    let lt=S.lists.find(x=>!x.parent&&x.name.toUpperCase()===L);
+    if(!lt){lt={id:uid(),name:L,ids:[],parent:null};S.lists.push(lt)}
+    l.parent=lt.id;
+  });
+  save();render();toast(tr('toast_az_done',cand.length));
+}
+/* list dialog */
+let ld=null;
+function openListDlg(id){
+  const l=listById(id);if(!l)return;ld=l;
+  $('lname').value=l.name;
+  const sel=$('lparent');sel.innerHTML='';
+  sel.appendChild(h('option',{value:'',text:tr('lm_top')}));
+  flatLists(null,0).forEach(x=>{if(isInside(l.id,x.l.id))return;sel.appendChild(h('option',{value:x.l.id,text:' '.repeat(x.depth)+listPath(x.l).join(' › ')}))});
+  sel.value=l.parent||'';
+  $('lm').classList.add('on');$('lname').focus();$('lname').select();
+}
+function closeListDlg(){$('lm').classList.remove('on');ld=null}
+$('lsave').onclick=()=>{
+  if(!ld)return;
+  const n=$('lname').value.trim();if(n)ld.name=n.slice(0,40);
+  const pid=$('lparent').value||null;
+  if(pid&&isInside(ld.id,pid)){toast(tr('toast_no_cycle'));return}
+  ld.parent=pid;if(pid){const p=listById(pid);if(p)p.collapsed=false}
+  save();closeListDlg();render();
+};
+$('lcancel').onclick=closeListDlg;$('lclose').onclick=closeListDlg;
+$('lm').onclick=e=>{if(e.target.id==='lm')closeListDlg()};
+$('ldel').onclick=()=>{if(ld){const id=ld.id;closeListDlg();deleteList(id)}};
+
+/* ======================= view ======================= */
+function currentList(){return S.ui.view.startsWith('list:')?listById(S.ui.view.slice(5)):null}
+function visible(){
+  const v=S.ui.view;let arr;
+  if(v==='fav')arr=S.items.filter(x=>x.fav);
+  else if(v.startsWith('list:')){const l=listById(v.slice(5));arr=l?listVideoIds(l,S.ui.incSub!==false).map(byId):[]}
+  else arr=S.items.slice();
+  const q=$('q').value.trim().toLowerCase();
+  if(q){const ts=q.split(/\s+/).map(x=>x.replace(/^@/,'')).filter(Boolean);arr=arr.filter(x=>{const hay=(x.title+' '+x.note+' '+x.author+' '+x.key.slice(2)+' '+x.url+' '+x.kind).toLowerCase();return ts.every(w=>hay.includes(w))})}
+  if(!v.startsWith('list:')){
+    const s=S.ui.sort;
+    if(s==='old')arr.sort((a,b)=>a.added-b.added);
+    else if(s==='az')arr.sort((a,b)=>a.title.localeCompare(b.title,undefined,{sensitivity:'base'}));
+    else if(s==='fav')arr.sort((a,b)=>(b.fav-a.fav)||(b.added-a.added));
+    else arr.sort((a,b)=>b.added-a.added);
+  }
+  return arr;
+}
+
+let dragId=null,dragListId=null,navCur=[],dragIds=[];
+const sel=new Set();let lastSel=null,lastView=null;
+function updSel(){
+  const n=sel.size,l=currentList();
+  $('selbar').classList.toggle('on',n>0);document.body.classList.toggle('hasSel',n>0);
+  $('selcnt').textContent=tr('sel_n',n);
+  $('sRm').style.display=(l&&[...sel].some(id=>l.ids.includes(id)))?'':'none';
+  document.documentElement.style.setProperty('--selh',$('selbar').offsetHeight+'px');
+}
+function refocus(id){const c=document.querySelector('#grid .card[data-id="'+id+'"]');if(c)c.focus({preventScroll:true})}
+function selToggle(id){if(sel.has(id))sel.delete(id);else sel.add(id);lastSel=id;render();refocus(id)}
+function selRange(id){
+  const a=navCur.indexOf(lastSel),b=navCur.indexOf(id);
+  if(a<0||b<0){selToggle(id);return}
+  navCur.slice(Math.min(a,b),Math.max(a,b)+1).forEach(x=>sel.add(x));lastSel=id;render();refocus(id);
+}
+function selAll(){navCur.forEach(x=>sel.add(x));render()}
+function selClear(){if(sel.size){sel.clear();lastSel=null;render()}}
+function addMany(lid,ids){
+  const l=listById(lid);dragId=null;dragIds=[];if(!l)return;
+  ids.forEach(id=>{if(byId(id)&&!l.ids.includes(id))l.ids.push(id)});
+  ids.forEach(id=>sel.delete(id));lastSel=null;save();render();
+  toast(ids.length>1?tr('toast_added_many',ids.length,l.name):tr('toast_added_list',l.name));
+}
+function favMany(ids){
+  let n=0;ids.forEach(id=>{const it=byId(id);if(it){it.fav=true;n++}});
+  dragId=null;dragIds=[];ids.forEach(id=>sel.delete(id));lastSel=null;save();render();toast(n>1?tr('toast_fav_many',n):tr('toast_fav'));
+}
+function openPicker(){
+  if(!sel.size)return;
+  $('pktitle').textContent=tr('pk_title',sel.size);
+  const box=$('pklist');box.innerHTML='';
+  flatLists(null,0).forEach(x=>{
+    const b=h('button',{text:'\u2003'.repeat(x.depth)+'☰ '+x.l.name,title:listPath(x.l).join(' › ')});
+    b.onclick=()=>{closePicker();addMany(x.l.id,[...sel])};box.appendChild(b);
+  });
+  const nb=h('button',{class:'pri',text:'+ '+tr('new_list')});
+  nb.onclick=()=>{const ids=[...sel];const l=newList();if(l){closePicker();addMany(l.id,ids)}};
+  box.appendChild(nb);
+  $('pk').classList.add('on');(box.querySelector('button')||nb).focus();
+}
+function closePicker(){$('pk').classList.remove('on')}
+function navItem(id,icon,name,count){
+  const d=h('div',{class:'nv'+(S.ui.view===id?' on':''),'data-v':id,tabindex:'0',role:'button'},h('span',{text:icon}),h('span',{class:'n',text:name}),h('span',{class:'c',text:String(count)}));
+  d.onclick=()=>{S.ui.view=id;save();render()};return d;
+}
+function listRow(l,depth){
+  const has=kids(l.id).length>0;
+  const tg=h('span',{class:'tg',text:has?(l.collapsed?'▸':'▾'):'',title:tr('lm_toggle')});
+  tg.onclick=e=>{e.stopPropagation();if(has){l.collapsed=!l.collapsed;save();render()}};
+  const lb=h('span',{class:'lb'},
+    h('span',{text:'✎',title:tr('lm_edit_t'),onclick:e=>{e.stopPropagation();openListDlg(l.id)}}),
+    h('span',{text:'✕',title:tr('lm_del_t'),onclick:e=>{e.stopPropagation();deleteList(l.id)}}),
+    h('span',{text:'＋',title:tr('lm_sub_t'),onclick:e=>{e.stopPropagation();newList(l.id)}}));
+  const d=h('div',{class:'nv'+(S.ui.view==='list:'+l.id?' on':''),'data-v':'list:'+l.id,'data-l':l.id,tabindex:'0',role:'button',draggable:'true',style:'padding-left:'+(10+depth*14)+'px'},
+    tg,h('span',{text:'☰'}),h('span',{class:'n',text:l.name}),h('span',{class:'c',text:String(listCount(l))}),lb);
+  d.onclick=()=>{S.ui.view='list:'+l.id;save();render()};
+  d.ondragstart=e=>{dragListId=l.id;e.dataTransfer.effectAllowed='move';try{e.dataTransfer.setData('text/igl',l.id)}catch(_){}};
+  d.ondragend=()=>{dragListId=null;document.querySelectorAll('.over').forEach(x=>x.classList.remove('over'))};
+  d.ondragover=e=>{if(dragListId===l.id)return;e.preventDefault();d.classList.add('over')};
+  d.ondragleave=()=>d.classList.remove('over');
+  d.ondrop=e=>{
+    e.preventDefault();e.stopPropagation();d.classList.remove('over');$('dropall').classList.remove('on');
+    if(dragListId){if(dragListId!==l.id)setParent(dragListId,l.id)}
+    else if(dragIds.length)addMany(l.id,dragIds.slice());
+    else if(dragId)addToList(l.id,dragId);
+    else{const tx=e.dataTransfer.getData('text/uri-list')||e.dataTransfer.getData('text/plain');if(tx)addText(tx,l.id)}
+  };
+  return d;
+}
+function renderTree(box,pid,depth){
+  kids(pid).forEach(l=>{
+    box.appendChild(listRow(l,depth));
+    if(!l.collapsed)renderTree(box,l.id,depth+1);
+  });
+}
+
+function render(){
+  if(lastView!==null&&lastView!==S.ui.view){sel.clear();lastSel=null}
+  lastView=S.ui.view;
+  [...sel].forEach(id=>{if(!byId(id))sel.delete(id)});
+  const v=S.ui.view;
+  const nav=$('nav');nav.innerHTML='';
+  const all=navItem('all','▦',tr('nav_all'),S.items.length);
+  const fav=navItem('fav','★',tr('nav_fav'),S.items.filter(x=>x.fav).length);
+  fav.ondragover=e=>{if(dragId){e.preventDefault();fav.classList.add('over')}};
+  fav.ondragleave=()=>fav.classList.remove('over');
+  fav.ondrop=e=>{e.preventDefault();fav.classList.remove('over');const ids=dragIds.length?dragIds.slice():(dragId?[dragId]:[]);if(ids.length)favMany(ids)};
+  nav.append(all,fav);
+  const ls=$('lists');ls.innerHTML='';
+  renderTree(ls,null,0);
+  if(!S.lists.length)ls.appendChild(h('div',{class:'hint nolist',style:'padding:4px 10px',text:tr('no_lists')}));
+  const mn=h('div',{class:'nv mnew','data-new':'1',tabindex:'0',role:'button'},h('span',{text:'+'}),h('span',{class:'n',text:tr('new_list')}));
+  mn.onclick=()=>$('newList').click();ls.appendChild(mn);
+  const ma=h('div',{class:'nv mnew','data-az':'1',tabindex:'0',role:'button'},h('span',{text:'A'}),h('span',{class:'n',text:tr('az_chip')}));
+  ma.onclick=()=>organizeAZ();ls.appendChild(ma);
+
+  const l=currentList();
+  if(v.startsWith('list:')&&!l)S.ui.view='all';
+  $('vt').textContent=S.ui.view==='fav'?tr('v_fav'):l?'☰ '+listPath(l).join(' › '):tr('v_all');
+  $('vh').textContent=l?tr('v_list_hint'):'';
+  $('sort').style.display=l?'none':'';
+  $('sort').value=S.ui.sort;
+  const hasKids=!!l&&kids(l.id).length>0;
+  $('incWrap').style.display=hasKids?'flex':'none';
+  $('inc').checked=S.ui.incSub!==false;
+  updSel();
+  const sb=$('subs');sb.innerHTML='';
+  if(l)kids(l.id).forEach(k=>{
+    const c=h('div',{class:'chip',tabindex:'0','data-sub':k.id},h('span',{text:'📁'}),h('span',{text:k.name}),h('span',{class:'c',text:String(listCount(k))}));
+    c.onclick=()=>{S.ui.view='list:'+k.id;save();render()};
+    c.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();c.click()}};
+    sb.appendChild(c);
+  });
+  const au=[...new Set(S.items.map(x=>x.author).filter(Boolean))].sort((a,b)=>a.localeCompare(b));
+  $('authors').innerHTML='';au.forEach(a=>$('authors').appendChild(h('option',{value:a})));
+  const g=$('grid');g.innerHTML='';
+  const arr=visible();navCur=arr.map(x=>x.id);
+  if(!arr.length){
+    g.appendChild(h('div',{class:'empty',text:$('q').value?tr('empty_search'):S.ui.view==='fav'?tr('empty_fav'):l?tr('empty_list'):tr('empty_all')}));
+    return;
+  }
+  arr.forEach(it=>g.appendChild(card(it,l)));
+}
+
+const hue=s=>{let n=0;for(const ch of s.toLowerCase())n=(n*31+ch.charCodeAt(0))%360;return n};
+const cleanAuth=s=>String(s||'').trim().replace(/^@+/,'').replace(/\s+/g,'');
+function whoRow(it){
+  const a=it.author;
+  const av=h('div',{class:'av',text:a?a[0]:'?'});
+  av.style.background=a?'hsl('+hue(a)+',55%,42%)':'#444';
+  const nm=h('div',{class:'wn'+(a?'':' none'),text:a?'@'+a:tr('who_none'),title:a?tr('who_filter'):tr('who_set')});
+  nm.onclick=e=>{e.stopPropagation();if(a){$('q').value=a;render()}else openEdit(it.id,'eauthor')};
+  return h('div',{class:'who'},av,nm);
+}
+function card(it,list){
+  const icon=it.kind==='profile'?'👤':it.kind==='other'?'🔗':'▶';
+  const th=h('div',{class:'th '+it.kind});
+  if(it.thumb){const im=h('img',{alt:'',loading:'lazy',referrerpolicy:'no-referrer'});im.onerror=()=>im.remove();im.src=it.thumb;th.appendChild(im)}
+  else th.appendChild(h('div',{class:'ic',text:icon}));
+  th.appendChild(h('div',{class:'badge',text:tr({reel:'kind_reel',post:'kind_post',profile:'kind_profile',other:'kind_link'}[it.kind])}));
+  th.appendChild(h('div',{class:'play',text:it.kind==='other'?'↗':'▶'}));
+  const star=h('button',{class:'star'+(it.fav?' on':''),title:tr('fav_t'),text:it.fav?'★':'☆'});
+  star.onclick=e=>{e.stopPropagation();it.fav=!it.fav;save();render()};
+  th.appendChild(star);
+  const ck=h('button',{class:'ck',title:tr('sel_t'),'aria-label':tr('sel_t'),text:sel.has(it.id)?'✓':''});
+  ck.onclick=e=>{e.stopPropagation();if(e.shiftKey&&lastSel)selRange(it.id);else selToggle(it.id)};
+  th.appendChild(ck);
+  const sub=new Date(it.added).toLocaleDateString(LOC[lang]);
+  const own=list&&list.ids.includes(it.id);
+  const act=h('div',{class:'act'},
+    h('button',{text:'IG',title:tr('card_ig_t'),onclick:e=>{e.stopPropagation();window.open(it.url,'_blank','noopener')}}),
+    h('button',{text:tr('card_copy'),onclick:e=>{e.stopPropagation();copy(it.url)}}),
+    h('button',{text:'✎',title:tr('card_edit_t'),onclick:e=>{e.stopPropagation();openEdit(it.id)}}),
+    own?h('button',{class:'dng',text:'−',title:tr('card_rm_t'),onclick:e=>{e.stopPropagation();removeFromList(list.id,it.id)}})
+       :h('button',{class:'dng',text:'✕',title:tr('card_del_t'),onclick:e=>{e.stopPropagation();delItem(it.id)}}));
+  const c=h('div',{class:'card'+(sel.has(it.id)?' sel':''),draggable:'true',tabindex:'0','data-id':it.id},th,h('div',{class:'meta'},whoRow(it),h('div',{class:'ttl',text:it.title}),h('div',{class:'sub',text:sub})),act);
+  c.onclick=e=>{
+    if(e.shiftKey&&lastSel){e.preventDefault();selRange(it.id)}
+    else if(e.ctrlKey||e.metaKey||sel.size>0)selToggle(it.id);
+    else openPlayer(it.id);
+  };
+  c.ondblclick=()=>openPlayer(it.id);
+  c.ondragstart=e=>{
+    dragIds=(sel.has(it.id)&&sel.size>1)?[...navCur.filter(x=>sel.has(x)),...[...sel].filter(x=>!navCur.includes(x))]:[it.id];
+    dragId=it.id;c.classList.add('drag');e.dataTransfer.effectAllowed='copyMove';
+    try{e.dataTransfer.setData('text/igv',it.id)}catch(_){}
+    if(dragIds.length>1){
+      document.querySelectorAll('.card.sel').forEach(x=>x.classList.add('drag'));
+      const g=h('div',{class:'dgh',text:'▶ × '+dragIds.length});document.body.appendChild(g);
+      try{e.dataTransfer.setDragImage(g,20,20)}catch(_){}
+      setTimeout(()=>g.remove(),0);
+    }
+  };
+  c.ondragend=()=>{dragId=null;dragIds=[];document.querySelectorAll('.card.drag').forEach(x=>x.classList.remove('drag'));document.querySelectorAll('.dl,.dr,.over').forEach(x=>x.classList.remove('dl','dr','over'))};
+  if(list&&own){
+    const ok=()=>dragIds.length&&!dragIds.includes(it.id)&&dragIds.every(x=>list.ids.includes(x));
+    c.ondragover=e=>{if(!ok())return;e.preventDefault();const r=c.getBoundingClientRect();const left=e.clientX<r.left+r.width/2;c.classList.toggle('dl',left);c.classList.toggle('dr',!left)};
+    c.ondragleave=()=>c.classList.remove('dl','dr');
+    c.ondrop=e=>{e.preventDefault();e.stopPropagation();const r=c.getBoundingClientRect();const left=e.clientX<r.left+r.width/2;c.classList.remove('dl','dr');
+      if(!ok())return;
+      const moving=dragIds.slice();
+      list.ids=list.ids.filter(x=>!moving.includes(x));
+      let i=list.ids.indexOf(it.id);if(i<0)i=list.ids.length;
+      list.ids.splice(left?i:i+1,0,...moving);dragId=null;dragIds=[];save();render()};
+  }
+  return c;
+}
+
+function delItem(id){
+  const it=byId(id);if(!it||!confirm(tr('c_del_item',it.title)))return;
+  S.items=S.items.filter(x=>x.id!==id);S.lists.forEach(l=>l.ids=l.ids.filter(x=>x!==id));save();render();
+}
+async function copy(tx){
+  try{await navigator.clipboard.writeText(tx)}catch(e){
+    const a=document.createElement('textarea');a.value=tx;document.body.appendChild(a);a.select();
+    try{document.execCommand('copy')}catch(_){}a.remove();
+  }
+  toast(tr('toast_copied'));
+}
+
+/* ======================= thumbnail capture (tab share asked once, then stays on) ======================= */
+let capStream=null,capVid=null,capDenied=false,capAsking=null;
+const capLive=()=>!!capStream&&capStream.getVideoTracks().some(x=>x.readyState==='live');
+function stopStream(){try{capStream&&capStream.getTracks().forEach(x=>x.stop())}catch(e){}capStream=null;if(capVid){capVid.remove();capVid=null}}
+function ensureStream(){
+  if(capLive())return Promise.resolve(true);
+  if(capAsking)return capAsking;
+  if(!navigator.mediaDevices||!navigator.mediaDevices.getDisplayMedia)return Promise.resolve(false);
+  capAsking=(async()=>{
+    try{
+      const st=await navigator.mediaDevices.getDisplayMedia({video:{displaySurface:'browser'},audio:false,preferCurrentTab:true,selfBrowserSurface:'include'});
+      capStream=st;
+      st.getVideoTracks()[0].addEventListener('ended',()=>{capStream=null;if(capVid){capVid.remove();capVid=null}});
+      capVid=document.createElement('video');capVid.muted=true;capVid.playsInline=true;capVid.srcObject=st;
+      capVid.style.cssText='position:fixed;left:-9999px;top:0;width:2px;height:2px;opacity:0;pointer-events:none';
+      document.body.appendChild(capVid);
+      await capVid.play();
+      return true;
+    }catch(e){return false}
+    finally{capAsking=null}
+  })();
+  return capAsking;
+}
+async function grabThumb(it,f){
+  const v=capVid;if(!v||!f)return false;
+  for(let i=0;i<30&&!v.videoWidth;i++)await sleep(100);
+  const sw=v.videoWidth,sh=v.videoHeight;if(!sw||!sh)return false;
+  if(Math.abs(sw/sh-innerWidth/innerHeight)>0.06){stopStream();toast(tr('toast_cap_tab'));return false}
+  if(v.requestVideoFrameCallback)await new Promise(r=>{let d=0;v.requestVideoFrameCallback(()=>{d=1;r()});setTimeout(()=>{if(!d)r()},600)});
+  const sx=sw/innerWidth,sy=sh/innerHeight,r=f.getBoundingClientRect();
+  const x0=Math.max(0,r.left),y0=Math.max(0,r.top),x1=Math.min(innerWidth,r.right),y1=Math.min(innerHeight,r.bottom);
+  if(x1-x0<40||y1-y0<40)return false;
+  const cw=(x1-x0)*sx,ch=(y1-y0)*sy,W=Math.min(400,cw),s=W/cw;
+  const c=document.createElement('canvas');c.width=Math.round(W);c.height=Math.round(ch*s);
+  c.getContext('2d').drawImage(v,x0*sx,y0*sy,cw,ch,0,0,c.width,c.height);
+  it.thumb=c.toDataURL('image/jpeg',.78);it.thumbCustom=true;
+  if(save()){render();$('pcap').classList.remove('hint');toast(tr('toast_cap_ok'))}
+  return true;
+}
+async function captureThumb(){
+  if(!cur)return;
+  const it=cur,f=$('pbody').querySelector('iframe');
+  if(!f){toast(tr('toast_cap_nothing'));return}
+  if(!navigator.mediaDevices||!navigator.mediaDevices.getDisplayMedia){toast(tr('toast_cap_unsupported'));return}
+  capDenied=false;
+  const ok=await ensureStream();
+  if(!ok){toast(tr('toast_cap_cancel'));$('pcap').classList.add('hint');return}
+  await sleep(300);
+  if(!(await grabThumb(it,f)))toast(tr('toast_cap_fail'));
+}
+function startAutoStream(){
+  ensureStream().then(ok=>{if(!ok){capDenied=true;$('pcap').classList.add('hint');toast(tr('toast_cap_skip'))}});
+}
+
+/* ======================= player ======================= */
+let cur=null;
+function openPlayer(id,opts){
+  const it=byId(id);if(!it)return;
+  cur=it;
+  $('ptitle').textContent=it.title;
+  $('pauth').value=it.author||'';
+  $('pfav').textContent=it.fav?'★':'☆';$('pfav').style.color=it.fav?'var(--gold)':'';
+  const b=$('pbody');b.innerHTML='';$('pst').textContent='';
+  if(!it.embed){b.appendChild(h('div',{class:'nf',text:tr('pl_nf')}))}
+  else if(!navigator.onLine){b.appendChild(h('div',{class:'nf',text:tr('pl_off')}))}
+  else{
+    const f=h('iframe',{allow:'autoplay; encrypted-media; fullscreen; clipboard-write',allowfullscreen:'true',title:it.title});
+    f.onload=()=>{
+      $('pst').textContent='';
+      try{f.blur();if(document.activeElement!==$('pauth'))$('pm').focus()}catch(e){}
+      if(!it.thumb&&!it.thumbCustom&&cur===it){
+        setTimeout(async()=>{
+          if(cur!==it||it.thumb||it.thumbCustom||!$('pm').classList.contains('on'))return;
+          if(S.settings.autoCap===false){$('pcap').classList.add('hint');return}
+          if(capAsking)await capAsking;
+          if(cur!==it||it.thumb||!$('pm').classList.contains('on'))return;
+          if(capLive())grabThumb(it,$('pbody').querySelector('iframe'));
+          else $('pcap').classList.add('hint');
+        },2200);
+      }
+    };
+    $('pst').textContent=tr('pl_loading');
+    b.appendChild(f);f.src=it.embed;
+    clearTimeout(openPlayer.t);
+    openPlayer.t=setTimeout(()=>{if($('pst').textContent===tr('pl_loading'))$('pst').textContent=tr('pl_slow')},8000);
+  }
+  $('pshare').style.display=navigator.share?'':'none';
+  const i=navCur.indexOf(id);
+  $('pprev').disabled=i<=0;$('pnext').disabled=i<0||i>=navCur.length-1;
+  $('pm').classList.add('on');
+  $('pcap').classList.remove('hint');
+  if(opts&&opts.focusAuthor&&!it.author)$('pauth').focus();else $('pm').focus();
+  /* ask to share this tab ONCE; it then stays on for every following video */
+  if(it.embed&&!it.thumb&&S.settings.autoCap!==false&&!capLive()&&!capAsking&&!capDenied&&navigator.onLine){
+    if(navigator.userActivation&&navigator.userActivation.isActive)startAutoStream();
+    else $('pcap').classList.add('hint');
+  }
+}
+function saveAuthor(){
+  if(!cur)return;
+  const a=cleanAuth($('pauth').value);
+  if(a!==(cur.author||'')){cur.author=a;cur.authorEdited=true;save();render();toast(a?tr('toast_profile_saved',a):tr('toast_profile_cleared'))}
+  $('pauth').value=a;
+}
+async function setThumbFromBlob(it,blob){
+  try{it.thumb=await toThumb(blob);it.thumbCustom=true;if(save()){render();toast(tr('toast_thumb_saved'))}}
+  catch(e){toast(tr('toast_img_fail'))}
+}
+function closePlayer(){$('pm').classList.remove('on');$('pbody').innerHTML='';cur=null}
+function step(d){if(!cur)return;const i=navCur.indexOf(cur.id);const n=navCur[i+d];if(n)openPlayer(n)}
+function openFull(it){
+  const w=Math.min(480,screen.availWidth||480),hh=Math.min(900,screen.availHeight||900);
+  const win=window.open(it.url,'igfull','popup=yes,width='+w+',height='+hh);
+  if(!win)window.open(it.url,'_blank','noopener');
+}
+$('pclose').onclick=closePlayer;
+$('pm').onclick=e=>{if(e.target.id==='pm')closePlayer()};
+$('pprev').onclick=()=>step(-1);$('pnext').onclick=()=>step(1);
+$('pfull').onclick=()=>cur&&openFull(cur);
+$('pcopy').onclick=()=>cur&&copy(cur.url);
+$('pshare').onclick=()=>cur&&navigator.share({title:cur.title,url:cur.url}).catch(()=>{});
+$('pfav').onclick=()=>{if(!cur)return;cur.fav=!cur.fav;save();render();$('pfav').textContent=cur.fav?'★':'☆';$('pfav').style.color=cur.fav?'var(--gold)':''};
+$('ptitle').onclick=()=>{if(cur){const id=cur.id;closePlayer();openEdit(id)}};
+$('pcap').onclick=captureThumb;
+$('pauth').addEventListener('blur',saveAuthor);
+
+/* ======================= edit video ======================= */
+let ed=null,edThumb='',edThumbCustom=false;
+function setPrev(){$('eim').style.backgroundImage=edThumb?'url("'+edThumb.replace(/"/g,'%22')+'")':'none'}
+function openEdit(id,focusId){
+  const it=byId(id);if(!it)return;ed=it;edThumb=it.thumb||'';edThumbCustom=!!it.thumbCustom;
+  $('etitle').value=it.title;$('eauthor').value=it.author||'';$('enote').value=it.note||'';$('elink').value=it.url;
+  setPrev();
+  const box=$('elists');box.innerHTML='';
+  flatLists(null,0).forEach(x=>{const cb=h('input',{type:'checkbox','data-l':x.l.id});cb.checked=x.l.ids.includes(it.id);box.appendChild(h('label',{},cb,listPath(x.l).join(' › ')))});
+  const nl=h('button',{text:'+ '+tr('new_list')});nl.onclick=()=>{const l=newList();if(l){l.ids.push(it.id);save();openEdit(it.id)}};box.appendChild(nl);
+  $('eref').style.display=(S.settings.token&&(it.kind==='reel'||it.kind==='post'))?'':'none';
+  $('em').classList.add('on');$(focusId||'etitle').focus();
+}
+function closeEdit(){$('em').classList.remove('on');ed=null}
+function toThumb(blob){
+  return new Promise((res,rej)=>{
+    const url=URL.createObjectURL(blob),img=new Image();
+    img.onload=()=>{const W=360,s=Math.min(1,W/img.width);const c=document.createElement('canvas');c.width=Math.round(img.width*s);c.height=Math.round(img.height*s);
+      c.getContext('2d').drawImage(img,0,0,c.width,c.height);URL.revokeObjectURL(url);res(c.toDataURL('image/jpeg',.72))};
+    img.onerror=()=>{URL.revokeObjectURL(url);rej()};img.src=url;
+  });
+}
+async function takeImage(f){try{edThumb=await toThumb(f);edThumbCustom=true;setPrev()}catch(e){toast(tr('toast_img_fail'))}}
+$('eup').onclick=()=>$('efile').click();
+$('efile').onchange=e=>{const f=e.target.files[0];if(f)takeImage(f);e.target.value=''};
+$('eurl').onclick=()=>{const u=prompt(tr('p_imgurl'));if(u&&/^https?:\/\//i.test(u.trim())){edThumb=u.trim();edThumbCustom=true;setPrev()}};
+$('eclr').onclick=()=>{edThumb='';edThumbCustom=true;setPrev()};
+$('em').addEventListener('paste',e=>{const f=[...((e.clipboardData&&e.clipboardData.files)||[])].find(x=>x.type.startsWith('image/'));if(f){e.preventDefault();takeImage(f)}});
+$('esave').onclick=()=>{
+  if(!ed)return;
+  const ti=$('etitle').value.trim();
+  if(ti&&ti!==ed.title){ed.title=ti;ed.custom=true}
+  const a=cleanAuth($('eauthor').value);if(a!==(ed.author||'')){ed.author=a;ed.authorEdited=true}
+  ed.note=$('enote').value.trim();
+  ed.thumb=edThumb;ed.thumbCustom=edThumbCustom;
+  document.querySelectorAll('#elists input[data-l]').forEach(cb=>{const l=listById(cb.dataset.l);if(!l)return;
+    if(cb.checked&&!l.ids.includes(ed.id))l.ids.push(ed.id);if(!cb.checked)l.ids=l.ids.filter(x=>x!==ed.id)});
+  if(save()){closeEdit();render()}
+};
+$('ecancel').onclick=closeEdit;$('eclose').onclick=closeEdit;
+$('em').onclick=e=>{if(e.target.id==='em')closeEdit()};
+$('edel').onclick=()=>{if(ed){const id=ed.id;closeEdit();delItem(id)}};
+$('eref').onclick=async()=>{if(!ed)return;const id=ed.id;ed.custom=false;ed.thumbCustom=false;ed.authorEdited=false;const ok=await fetchInfo(ed);toast(ok?tr('toast_ig_ok'):tr('toast_ig_fail'));if(ok)openEdit(id)};
+
+/* ======================= settings / backup ======================= */
+$('bSet').onclick=()=>{$('stoken').value=S.settings.token||'';$('sauto').checked=S.settings.autoCap!==false;$('sm').classList.add('on')};
+$('sclose').onclick=()=>$('sm').classList.remove('on');
+$('sm').onclick=e=>{if(e.target.id==='sm')$('sm').classList.remove('on')};
+$('ssave').onclick=()=>{
+  const was=S.settings.autoCap!==false;
+  S.settings.token=$('stoken').value.trim();S.settings.autoCap=$('sauto').checked;save();
+  $('sm').classList.remove('on');toast(tr('toast_saved'));
+  if(!S.settings.autoCap)stopStream();
+  else if(!was){capDenied=false;ensureStream().then(ok=>{if(ok)toast(tr('toast_cap_on'))})}
+};
+$('sfetch').onclick=async()=>{
+  S.settings.token=$('stoken').value.trim();save();
+  if(!S.settings.token){toast(tr('toast_add_token'));return}
+  let ok=0,n=0;for(const it of S.items.slice()){if(it.kind==='reel'||it.kind==='post'){n++;if(await fetchInfo(it))ok++}}
+  toast(tr('toast_updated',ok,n));
+};
+$('sexp').onclick=()=>{
+  const data=JSON.stringify({app:'igv',version:3,items:S.items,lists:S.lists},null,1);
+  const a=h('a',{href:URL.createObjectURL(new Blob([data],{type:'application/json'})),download:'ig-viewer-backup-'+new Date().toISOString().slice(0,10)+'.json'});
+  document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},500);
+};
+$('simp').onclick=()=>$('sfile').click();
+$('sfile').onchange=async e=>{
+  const f=e.target.files[0];e.target.value='';if(!f)return;
+  try{
+    const d=JSON.parse(await f.text());
+    if(!Array.isArray(d.items))throw 0;
+    const map={};let added=0;
+    d.items.forEach(x=>{
+      if(!x||!x.key||!x.url)return;
+      let ex=S.items.find(y=>y.key===x.key);
+      if(!ex){ex=Object.assign({note:'',thumb:'',author:'',fav:false,added:Date.now()},x);if(byId(ex.id))ex.id=uid();S.items.push(ex);added++}
+      else if(x.fav)ex.fav=true;
+      map[x.id]=ex.id;
+    });
+    const impL=Array.isArray(d.lists)?d.lists:[],lmap={};
+    const mapList=(l,depth)=>{
+      if(lmap[l.id])return lmap[l.id];
+      let pid=null;
+      if(l.parent&&(depth||0)<50){const pl=impL.find(x=>x.id===l.parent);if(pl&&pl!==l)pid=mapList(pl,(depth||0)+1).id}
+      let tg=S.lists.find(y=>y.id===l.id)||S.lists.find(y=>y.name===l.name&&(y.parent||null)===pid);
+      if(!tg){tg={id:(l.id&&!listById(l.id))?l.id:uid(),name:String(l.name||'List').slice(0,40),ids:[],parent:pid,collapsed:!!l.collapsed};S.lists.push(tg)}
+      lmap[l.id]=tg;return tg;
+    };
+    impL.forEach(l=>{if(!l||typeof l!=='object')return;const tg=mapList(l,0);(l.ids||[]).forEach(i=>{const m=map[i];if(m&&!tg.ids.includes(m))tg.ids.push(m)})});
+    save();render();$('sm').classList.remove('on');toast(tr('toast_imported',added));
+  }catch(err){toast(tr('toast_bad_backup'))}
+};
+$('sclr').onclick=()=>{if(confirm(tr('c_clear1'))&&confirm(tr('c_clear2'))){stopStream();S={items:[],lists:[],settings:{token:'',autoCap:true,lang:S.settings.lang||''},ui:{view:'all',sort:'new',incSub:true}};save();render();$('sm').classList.remove('on')}};
+
+/* ======================= wiring ======================= */
+$('add').onclick=()=>{if(addText($('inp').value).length)$('inp').value=''};
+$('inp').addEventListener('paste',()=>setTimeout(()=>{if(addText($('inp').value).length)$('inp').value=''},50));
+$('paste').onclick=async()=>{try{addText(await navigator.clipboard.readText())}catch(e){toast(tr('toast_clip'))}};
+$('newList').onclick=()=>{const l=newList();if(l){S.ui.view='list:'+l.id;save();render()}};
+$('azBtn').onclick=organizeAZ;
+window.addEventListener('resize',()=>{if(sel.size)updSel()});
+$('sAll').onclick=selAll;$('sClr').onclick=selClear;$('sAdd').onclick=openPicker;
+$('sFav').onclick=()=>{
+  const its=[...sel].map(byId).filter(Boolean);if(!its.length)return;
+  const allFav=its.every(x=>x.fav);its.forEach(x=>x.fav=!allFav);
+  save();render();if(!allFav)toast(tr('toast_fav_many',its.length));
+};
+$('sRm').onclick=()=>{
+  const l=currentList();if(!l)return;
+  const ids=[...sel].filter(x=>l.ids.includes(x));if(!ids.length)return;
+  l.ids=l.ids.filter(x=>!ids.includes(x));sel.clear();lastSel=null;save();render();toast(tr('toast_rm_many',ids.length));
+};
+$('sDel').onclick=()=>{
+  const ids=[...sel].filter(byId);if(!ids.length)return;
+  if(!confirm(tr('c_del_many',ids.length)))return;
+  S.items=S.items.filter(x=>!ids.includes(x.id));S.lists.forEach(l=>l.ids=l.ids.filter(x=>!ids.includes(x)));
+  sel.clear();lastSel=null;save();render();toast(tr('toast_del_many',ids.length));
+};
+$('pkclose').onclick=closePicker;$('pk').onclick=e=>{if(e.target.id==='pk')closePicker()};
+$('q').oninput=()=>render();
+$('sort').onchange=()=>{S.ui.sort=$('sort').value;save();render()};
+$('inc').onchange=()=>{S.ui.incSub=$('inc').checked;save();render()};
+document.querySelectorAll('#langs button').forEach(b=>b.onclick=()=>{lang=b.dataset.l;S.settings.lang=lang;save();applyLang();render();if(cur)$('ptitle').title=tr('edit_click')});
+/* un-nest: drop a list on the "Lists" header */
+const sl=$('sectLists');
+sl.ondragover=e=>{if(dragListId){e.preventDefault();sl.classList.add('over')}};
+sl.ondragleave=()=>sl.classList.remove('over');
+sl.ondrop=e=>{e.preventDefault();sl.classList.remove('over');if(dragListId)setParent(dragListId,null)};
+
+document.addEventListener('paste',e=>{
+  const imgs=[...((e.clipboardData&&e.clipboardData.files)||[])].filter(f=>f.type.startsWith('image/'));
+  if(imgs.length){
+    if($('em').classList.contains('on'))return;
+    if(cur&&$('pm').classList.contains('on')){e.preventDefault();setThumbFromBlob(cur,imgs[0])}
+    return;
+  }
+  const tag=(document.activeElement||{}).tagName;
+  if(tag==='INPUT'||tag==='TEXTAREA')return;
+  if($('em').classList.contains('on')||$('lm').classList.contains('on'))return;
+  const tx=(e.clipboardData||window.clipboardData).getData('text');if(tx)addText(tx);
+});
+
+function focusCard(i){const cs=[...document.querySelectorAll('#grid .card')];const c=cs[Math.max(0,Math.min(cs.length-1,i))];if(c){c.focus();c.scrollIntoView({block:'nearest'})}}
+document.addEventListener('keydown',e=>{
+  if(e.isComposing)return;
+  const el=document.activeElement||document.body,id=el.id,tag=el.tagName,cl=el.classList||{contains:()=>false};
+  const typing=tag==='INPUT'||tag==='TEXTAREA'||tag==='SELECT';
+  const pkOn=$('pk').classList.contains('on'),lmOn=$('lm').classList.contains('on'),emOn=$('em').classList.contains('on'),smOn=$('sm').classList.contains('on'),pmOn=$('pm').classList.contains('on');
+  if(e.key==='Escape'){
+    if(pkOn)closePicker();
+    else if(lmOn)closeListDlg();
+    else if(emOn)closeEdit();
+    else if(smOn)$('sm').classList.remove('on');
+    else if(pmOn){if(id==='pauth'&&cur)$('pauth').value=cur.author||'';closePlayer()}
+    else if(sel.size&&!typing)selClear();
+    else if(id==='q'){if($('q').value){$('q').value='';render()}else $('q').blur()}
+    else if(typing)el.blur();
+    else if($('q').value){$('q').value='';render()}
+    return;
+  }
+  if(e.key==='Enter'){
+    if(id==='inp'&&!e.shiftKey){e.preventDefault();if(addText($('inp').value).length)$('inp').value='';return}
+    if(id==='q'){e.preventDefault();if(navCur[0])openPlayer(navCur[0]);else toast(tr('toast_nothing_open'));return}
+    if(id==='pauth'){e.preventDefault();saveAuthor();$('pauth').blur();return}
+    if(lmOn){if(tag==='INPUT'){e.preventDefault();$('lsave').click()}return}
+    if(emOn){if(tag==='INPUT'||(tag==='TEXTAREA'&&(e.ctrlKey||e.metaKey))){e.preventDefault();$('esave').click()}return}
+    if(smOn){if(tag==='INPUT'){e.preventDefault();$('ssave').click()}return}
+    if(cl.contains('card')){e.preventDefault();openPlayer(el.dataset.id);return}
+    if(cl.contains('nv')){e.preventDefault();el.click();return}
+    return;
+  }
+  if(e.key===' '&&(cl.contains('card')||cl.contains('nv'))){e.preventDefault();el.click();return}
+  const free=!emOn&&!smOn&&!pmOn&&!lmOn&&!pkOn&&!typing;
+  if(free&&(e.key==='x'||e.key==='X')&&!e.ctrlKey&&!e.metaKey&&cl.contains('card')){e.preventDefault();selToggle(el.dataset.id);return}
+  if(free&&(e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='a'){e.preventDefault();selAll();return}
+  if(free&&e.key==='Delete'&&sel.size){e.preventDefault();$('sDel').click();return}
+  if(pmOn&&!typing&&!emOn&&!lmOn){if(e.key==='ArrowLeft'){e.preventDefault();step(-1)}else if(e.key==='ArrowRight'){e.preventDefault();step(1)}return}
+  if(id==='q'&&e.key==='ArrowDown'&&!pmOn){e.preventDefault();focusCard(0);return}
+  if(!emOn&&!smOn&&!pmOn&&!lmOn&&cl.contains('card')){
+    const cs=[...document.querySelectorAll('#grid .card')],i=cs.indexOf(el);
+    const cols=Math.max(1,getComputedStyle($('grid')).gridTemplateColumns.split(' ').length);
+    const mv={ArrowRight:1,ArrowLeft:-1,ArrowDown:cols,ArrowUp:-cols}[e.key];
+    if(mv){e.preventDefault();focusCard(i+mv)}
+    return;
+  }
+  if(e.key==='/'&&!typing&&!emOn&&!smOn&&!pmOn&&!lmOn){e.preventDefault();$('q').focus()}
+});
+
+/* drop external links anywhere */
+let dc=0;
+const isLinkDrag=e=>!dragId&&!dragListId&&e.dataTransfer&&[...e.dataTransfer.types].some(x=>x==='text/uri-list'||x==='text/plain');
+window.addEventListener('dragenter',e=>{if(isLinkDrag(e)){dc++;$('dropall').classList.add('on')}});
+window.addEventListener('dragleave',e=>{if(!dragId&&!dragListId){dc=Math.max(0,dc-1);if(!dc)$('dropall').classList.remove('on')}});
+window.addEventListener('dragover',e=>{if(isLinkDrag(e))e.preventDefault()});
+window.addEventListener('drop',e=>{dc=0;$('dropall').classList.remove('on');
+  if(!isLinkDrag(e))return;e.preventDefault();
+  const tx=e.dataTransfer.getData('text/uri-list')||e.dataTransfer.getData('text/plain');if(tx)addText(tx)});
+window.addEventListener('dragend',()=>{dc=0;$('dropall').classList.remove('on')});
+
+applyLang();
+render();
+</script>
+</body>
+</html>
